@@ -26,7 +26,7 @@ More information regarding CIL is available at the following links
   - [Project Blog](https://gcc-cil.blogspot.com)
 
 
-The remainder of this file is the contents of the GCC README file
+The remainder of this file is the contents of the original GCC README file
 
 * * *
 
