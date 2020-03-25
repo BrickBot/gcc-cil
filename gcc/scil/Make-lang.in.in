@@ -1,0 +1,157 @@
+# Top level makefile fragment for SCIL frontend for the GCC. -*- makefile -*-
+
+# This file provides the language dependent support in the main Makefile.
+# Each language makefile fragment must provide the following targets:
+#
+# foo.all.build, foo.all.cross, foo.start.encap, foo.rest.encap,
+# foo.info, foo.dvi,
+# foo.install-normal, foo.install-common, foo.install-info, foo.install-man,
+# foo.uninstall, foo.distdir,
+# foo.mostlyclean, foo.clean, foo.distclean, foo.extraclean,
+# foo.maintainer-clean, foo.stage1, foo.stage2, foo.stage3, foo.stage4
+#
+# where `foo' is the name of the language.
+#
+# It should also provide rules for:
+#
+# - making any compiler driver (eg: GCC)
+# - the compiler proper (eg: treelang)
+# - define the names for selecting the language in LANGUAGES.
+#
+## Note: program-prefix and program-suffix options are not supported
+## just program_transform_name which is a sed script to transform the
+## names
+
+# back end compiler libraries etc as defined by the GCC
+SCIL_BE_LIBS_DEP = $(BACKEND) $(LIBIBERTY) $(INTLLIBS) $(LIBDEPS)
+SCIL_BE_LIBS_NODEP = $(INTLLIBS) $(LIBS)
+
+SCIL_EXES = scil$(exeext)
+
+SCIL-warn = $(STRICT_WARN)
+
+# Don't remove these lines, they are needed to set SCIL_OBJECTS and SCIL_DIRS.
+SCIL_OBJECTS = 
+SCIL_INCLUDES =
+
+# Define the names for selecting SCIL in LANGUAGES.
+
+.phony: SCIL
+
+SCIL: SCIL.done
+
+SCIL.done: $(SCIL_EXES)
+	$(STAMP) cil.done	
+
+# no preprocessor
+
+# core compiler
+$(SCIL_EXES): $(SCIL_OBJECTS) attribs.o scil-pnet-errno_map.o $(SCIL_BE_LIBS_DEP)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $^ $(SCIL_BE_LIBS_NODEP)
+
+$(SCIL_GTY_GENERATED): s-gtype; @true
+
+$(SCIL_OBJECTS) : %.o : $(srcdir)/%.c
+	@mkdir -p $(*D)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(SCIL_INCLUDES) $(INCLUDES) $<
+
+scil-pnet-errno_map.o : scil-pnet-errno_map.c
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(SCIL_INCLUDES) $(INCLUDES) $<
+
+scil-pnet-errno_map.c : $(srcdir)/scil/pnet/support/gen_errno.sh $(srcdir)/scil/pnet/include/il_errno.h
+	$^ $(CC) -c $(ALL_CFLAGS) $(SCIL_INCLUDES) $(INCLUDES) >$@
+
+# Build hooks:
+
+SCIL.all.build: SCIL
+SCIL.all.cross:
+
+SCIL.start.encap:
+SCIL.rest.encap:
+SCIL.man:
+SCIL.srcman:
+
+.phony:SCIL.info
+SCIL.info:
+SCIL.dvi:
+SCIL.generated-manpages:
+
+# Install hooks:
+
+SCIL.install-normal: SCIL.install.common
+
+.phony:SCIL.install.common
+.phony:SCIL.install
+
+SCIL.install SCIL.install.common SCIL.install-common: SCIL.install.common.done
+
+SCIL.install.common.done:  installdirs SCIL.done
+	for name in $(SCIL_EXES); \
+	do \
+	   if [ -f $$name ] ; then \
+	    name2="`echo \`basename $$name\` | sed -e '$(program_transform_name)' `"; \
+	    rm -f $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	    echo $(INSTALL_PROGRAM) $$name$(exeext) $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	    $(INSTALL_PROGRAM) $$name$(exeext) $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	    chmod a+x $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	  fi ; \
+	done
+	$(STAMP) SCIL.install.common.done
+
+SCIL.install-info:
+SCIL.install-man:
+
+SCIL.uninstall:
+	for name in $(SCIL_EXES); \
+	do \
+	  echo $$name; \
+	  name2="`echo $$name | sed -e '$(program_transform_name)' `"; \
+	  echo becomes $$name2; \
+	  echo -rm -rf $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	  rm -rf $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	done
+	-rm SCIL.install.common.done
+
+#
+# Clean hooks:
+# A lot of the ancillary files are deleted by the main makefile.
+# We just have to delete files specific to us.
+
+SCIL.mostlyclean:
+	for name in $(SCIL_EXES); \
+	do \
+          rm -f scil/$$name$(exeext); \
+	done
+	-rm -f scil/*$(objext)
+	-rm -f scil/*$(coverageexts)
+	-rm SCIL.done
+
+
+SCIL.clean: SCIL.mostlyclean
+
+SCIL.distclean: SCIL.clean
+	-rm -f scil/config.status
+	-rm -f scil/*.output
+
+SCIL.extraclean: SCIL.distclean
+
+SCIL.maintainer-clean: SCIL.extraclean
+	for name in $(SCIL_GTY_GENERATED); \
+	do \
+          rm -f $(srcdir)/scil/$$name; \
+	done
+	-rm -R $(srcdir)/scil/*~
+
+
+# Stage hooks:
+# The main makefile has already created stage%/scil.
+
+SCIL.stage%: stage%-start
+
+# Maintenance hooks:
+
+# This target creates the files that can be rebuilt, but go in the
+# distribution anyway.  It then copies the files to the distdir directory.
+
+SCIL.distdir:
+

@@ -1,0 +1,6 @@
+for (( i = 1 ; i <= 10 ; i++ ))
+do
+  { time -p ./runc0 &> /dev/null; } 2>> timesc.txt
+  { time -p ./runrcx0 &> /dev/null; } 2>> timesr.txt
+  echo $i
+done

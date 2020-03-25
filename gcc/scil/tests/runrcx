@@ -1,0 +1,12 @@
+/cygdrive/c/WINDOWS/Microsoft.NET/Framework/v2.0.50727/csc /t:library /out:CliHw.dll "..\trunk\gcc\scil\rt\CliHw\*.cs"
+/cygdrive/c/WINDOWS/Microsoft.NET/Framework/v2.0.50727/csc /r:CliHw.dll /t:library /out:H8_3297.dll "..\trunk\gcc\scil\tests\H8_3297\*.cs"
+/cygdrive/c/WINDOWS/Microsoft.NET/Framework/v2.0.50727/csc /r:CliHw.dll /t:library /r:H8_3297.dll /out:RCX.dll "..\trunk\gcc\scil\tests\RCX\*.cs"
+/cygdrive/c/WINDOWS/Microsoft.NET/Framework/v2.0.50727/csc /r:CliHw.dll /r:H8_3297.dll /r:RCX.dll "..\trunk\gcc\scil\tests\test_rcx-2733.cs"
+gcc/scil -O3 test_rcx.exe -syslib /cygdrive/c/WINDOWS/Microsoft.NET/Framework/v2.0.50727/mscorlib.dll
+#gcc/scil -O3 test_rcx.exe -syslib /cygdrive/c/Programme/Mono-1.1.13.8/lib/mono/2.0/mscorlib.dll
+gcc/cc1 -O3 ../trunk/gcc/scil/tests/RCX/rt.c -o rt.s
+/usr/local/bin/h8300-hms-as test_rcx.s -o test_rcx.o
+/usr/local/bin/h8300-hms-as rt.s -o rt.o
+/usr/local/bin/h8300-hms-as ../trunk/gcc/scil/tests/rcx/runtime.s -o runtime.o
+/usr/local/bin/h8300-hms-ld --script main.lds --relax --strip-all -nostdlib -o test_rcx.bin runtime.o test_rcx.o rt.o
+/usr/local/bin/h8300-hms-objcopy -O srec test_rcx.bin test_rcx.srec

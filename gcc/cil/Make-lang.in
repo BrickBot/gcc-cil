@@ -1,0 +1,465 @@
+# Top level makefile fragment for CIL For GCC. -*- makefile -*-
+
+#   Copyright (C) 2003, 2004 Free
+#   Software Foundation, Inc.
+
+#This file is part of GCC.
+
+#GCC is free software; you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation; either version 2, or (at your option)
+#any later version.
+
+#GCC is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with GCC; see the file COPYING.  If not, write to
+#the Free Software Foundation, 59 Temple Place - Suite 330,
+#Boston, MA 02111-1307, USA.
+
+# This file provides the language dependent support in the main Makefile.
+# Each language makefile fragment must provide the following targets:
+#
+# foo.all.build, foo.all.cross, foo.start.encap, foo.rest.encap,
+# foo.info, foo.dvi,
+# foo.install-normal, foo.install-common, foo.install-info, foo.install-man,
+# foo.uninstall, foo.distdir,
+# foo.mostlyclean, foo.clean, foo.distclean, foo.extraclean,
+# foo.maintainer-clean, foo.stage1, foo.stage2, foo.stage3, foo.stage4
+#
+# where `foo' is the name of the language.
+#
+# It should also provide rules for:
+#
+# - making any compiler driver (eg: GCC)
+# - the compiler proper (eg: treelang)
+# - define the names for selecting the language in LANGUAGES.
+#
+
+## note program-prefix and program-suffix options are not supported
+## just program_transform_name which is a sed script to transform the
+## names
+
+# back end compiler libraries etc
+CIL_BE_LIBS_DEP =	$(BACKEND) $(LIBIBERTY) $(INTLLIBS) $(LIBDEPS)
+CIL_BE_LIBS_NODEP =	$(INTLLIBS) $(LIBS)
+
+#GCC_EXTRAS =	-B./ -B$(build_tooldir)/bin/ -isystem $(build_tooldir)/include
+
+# ./xgcc is the just built compiler. See GCC_FOR_TARGET in the GCC Makefile.in.
+# If this can't be found, you probably have not done a bootstrap of GCC,
+# which you need to do.
+
+# GCC_FOR_CIL = ./xgcc $(GCC_EXTRAS)
+
+CIL_SOURCE =    ${srcdir}/cil/build_trees.c ${srcdir}/cil/build_trees.h \
+		${srcdir}/cil/cil1.c ${srcdir}/cil/cil.h \
+		${srcdir}/cil/cil-decl.c ${srcdir}/cil/cil-decl.h \
+		${srcdir}/cil/instr.c ${srcdir}/cil/instr.h \
+		${srcdir}/cil/mono_structs.c ${srcdir}/cil/mono_structs.h \
+                ${srcdir}/cil/parse_assembly.c ${srcdir}/cil/parse_assembly.h \
+                ${srcdir}/cil/parse_instr.c ${srcdir}/cil/parse_instr.h \
+                ${srcdir}/cil/pnet.c ${srcdir}/cil/pnet.h \
+		${srcdir}/cil/mangle.c ${srcdir}/cil/mangle.h \
+		${srcdir}/cil/stack.c ${srcdir}/cil/stack.h
+
+CIL_GENERATED = gtype-cil.h gt-cil-stack.h gt-cil-build-trees.h
+
+CIL_EXES =	cil1
+
+DOTGNU_INCLUDES = -I$(srcdir)/cil/include -I$(srcdir)/cil/image
+
+DOTGNU_HEADERS = $(srcdir)/cil/include/il_align.h \
+		 $(srcdir)/cil/include/il_config.h \
+		 $(srcdir)/cil/include/il_crypt.h \
+		 $(srcdir)/cil/include/il_image.h \
+                 $(srcdir)/cil/include/il_meta.h \
+                 $(srcdir)/cil/include/il_profile.h \
+		 $(srcdir)/cil/include/il_program.h \
+		 $(srcdir)/cil/include/il_opcodes.h \
+		 $(srcdir)/cil/include/il_system.h \
+		 $(srcdir)/cil/include/il_types.h \
+		 $(srcdir)/cil/include/il_utils.h \
+		 $(srcdir)/cil/include/il_values.h \
+		 $(srcdir)/cil/include/il_writer.h \
+                 $(srcdir)/cil/image/image.h \
+                 $(srcdir)/cil/image/program.h \
+                 $(srcdir)/cil/support/mem_debug.h
+
+DOTGNU_SOURCE =	$(srcdir)/cil/image/assembly.c \
+		$(srcdir)/cil/image/attr.c \
+		$(srcdir)/cil/image/class.c \
+		$(srcdir)/cil/image/compress.c \
+		$(srcdir)/cil/image/context.c \
+		$(srcdir)/cil/image/create.c \
+		$(srcdir)/cil/image/errors.c \
+		$(srcdir)/cil/image/generic.c \
+		$(srcdir)/cil/image/image.c \
+		$(srcdir)/cil/image/item.c \
+		$(srcdir)/cil/image/link.c \
+		$(srcdir)/cil/image/member.c \
+                $(srcdir)/cil/image/meta_build.c \
+		$(srcdir)/cil/image/meta_header.c \
+		$(srcdir)/cil/image/meta_index.c \
+		$(srcdir)/cil/image/meta_types.c \
+		$(srcdir)/cil/image/misc_token.c \
+                $(srcdir)/cil/image/module.c \
+                $(srcdir)/cil/image/opcodes.c \
+                $(srcdir)/cil/image/opdef.c \
+		$(srcdir)/cil/image/pecoff_loader.c \
+		$(srcdir)/cil/image/sig_parse.c \
+		$(srcdir)/cil/image/synthetic.c \
+		$(srcdir)/cil/image/uncompress.c \
+		$(srcdir)/cil/support/allocate.c \
+                $(srcdir)/cil/support/getcwd.c \
+		$(srcdir)/cil/support/guid.c \
+		$(srcdir)/cil/support/expand.c \
+		$(srcdir)/cil/support/file.c \
+		$(srcdir)/cil/support/filemap.c \
+		$(srcdir)/cil/support/hash.c \
+		$(srcdir)/cil/support/hashtab.c \
+		$(srcdir)/cil/support/memory.c \
+		$(srcdir)/cil/support/mempool.c \
+		$(srcdir)/cil/support/memstack.c \
+		$(srcdir)/cil/support/strings.c \
+		$(srcdir)/cil/support/sha1.c \
+		$(srcdir)/cil/support/utf8.c \
+		$(srcdir)/cil/support/utf16.c
+
+DOTGNU_OBJ_FILES = cil/assembly.o \
+		   cil/attr.o \
+		   cil/class.o \
+		   cil/compress.o \
+		   cil/context.o \
+		   cil/create.o \
+		   cil/errors.o \
+		   cil/generic.o \
+		   cil/image.o \
+		   cil/item.o \
+		   cil/link.o \
+		   cil/member.o \
+                   cil/meta_build.o \
+		   cil/meta_header.o \
+		   cil/meta_index.o \
+		   cil/meta_types.o \
+		   cil/misc_token.o \
+                   cil/module.o \
+                   cil/opcodes.o \
+                   cil/opdef.o \
+		   cil/pecoff_loader.o \
+                   cil/sig_parse.o \
+		   cil/synthetic.o \
+		   cil/uncompress.o \
+		   cil/allocate.o \
+		   cil/getcwd.o \
+		   cil/guid.o \
+		   cil/expand.o \
+		   cil/file.o \
+		   cil/filemap.o \
+		   cil/hash.o \
+		   cil/hashtab.o \
+		   cil/memory.o \
+		   cil/mempool.o \
+		   cil/memstack.o \
+		   cil/sha1.o \
+		   cil/strings.o \
+		   cil/utf8.o \
+		   cil/utf16.o
+
+
+cil-warn = $(STRICT_WARN)
+
+#
+# Define the names for selecting cil in LANGUAGES.
+
+.phony: cil
+
+cil:		cil.done
+
+cil.done:	cil1$(exeext)
+	$(STAMP) cil.done
+
+# no preprocessor
+
+# core compiler
+cil1$(exeext):	cil/build_trees.o cil/cil1.o cil/cil-decl.o cil/stack.o\
+		cil/pnet.o cil/parse_assembly.o\
+		cil/parse_instr.o cil/instr.o\
+		cil/mono_structs.o cil/mangle.o attribs.o\
+		$(DOTGNU_OBJ_FILES) $(CIL_BE_LIBS_DEP)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $^ $(CIL_BE_LIBS_NODEP)
+#
+# Compiling object files from source files.
+
+# object file makes
+
+cil/build_trees.o: $(srcdir)/cil/build_trees.c ${srcdir}/cil/build_trees.h \
+                   ${srcdir}/cil/mono_structs.h \
+		   ${srcdir}/cil/stack.h ${srcdir}/cil/cil-decl.h \
+		   gt-cil-build-trees.h \
+		   ${DOTGNU_HEADERS} $(CONFIG_H)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+cil/cil1.o:	$(srcdir)/cil/cil1.c $(srcdir)/cil/cil.h \
+		${srcdir}/cil/cil-decl.h $(srcdir)/cil/parse_assembly.h \
+		${srcdir}/cil/mangle.h \
+		$(DOTGNU_HEADERS) $(CONFIG_H)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+cil/cil-decl.o:	$(srcdir)/cil/cil-decl.c \
+                ${srcdir}/cil/mono_structs.h ${srcdir}/cil/cil.h \
+		${srcdir}/cil/cil-decl.h gtype-cil.h \
+		$(DOTGNU_HEADERS) $(CONFIG_H)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+cil/instr.o:	$(srcdir)/cil/instr.c ${srcdir}/cil/instr.h \
+		${srcdir}/cil/build_trees.h \
+		${srcdir}/cil/cil-decl.h \
+		${srcdir}/cil/parse_assembly.h \
+		${srcdir}/cil/stack.h \
+		$(DOTGNU_HEADERS) $(CONFIG_H)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+cil/mangle.o:	$(srcdir)/cil/mangle.c ${srcdir}/cil/mangle.h \
+		$(DOTGNU_HEADERS) $(CONFIG_H)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+cil/mono_structs.o:	$(srcdir)/cil/mono_structs.c \
+			${srcdir}/cil/mono_structs.h \
+			${srcdir}/cil/build_trees.h \
+			${srcdir}/cil/cil-decl.h $(DOTGNU_HEADERS) $(CONFIG_H)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+cil/parse_assembly.o:	$(srcdir)/cil/parse_assembly.c \
+			${srcdir}/cil/parse_assembly.h \
+			${srcdir}/cil/build_trees.h \
+			${srcdir}/cil/mono_structs.h \
+			${srcdir}/cil/pnet.h \
+			${srcdir}/cil/cil-decl.h $(DOTGNU_HEADERS) $(CONFIG_H)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+cil/parse_instr.o:	$(srcdir)/cil/parse_instr.c \
+			${srcdir}/cil/parse_instr.h \
+			${srcdir}/cil/build_trees.h \
+			${srcdir}/cil/cil-decl.h \
+			${srcdir}/cil/instr.h \
+			${srcdir}/cil/parse_assembly.h \
+			${srcdir}/cil/stack.h \
+			$(DOTGNU_HEADERS) $(CONFIG_H)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+cil/pnet.o:	$(srcdir)/cil/pnet.c ${srcdir}/cil/pnet.h \
+                        ${srcdir}/cil/parse_assembly.h \
+			${srcdir}/cil/cil-decl.h $(DOTGNU_HEADERS) $(CONFIG_H)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+cil/stack.o: 	$(srcdir)/cil/stack.c ${srcdir}/cil/stack.h gt-cil-stack.h \
+		${srcdir}/cil/cil-decl.h \
+		$(DOTGNU_HEADERS) $(CONFIG_H)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+$(CIL_GENERATED): s-gtype; @true
+
+# make object files of dotgnu(pnet/image)
+
+cil/assembly.o: $(srcdir)/cil/image/assembly.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/attr.o: $(srcdir)/cil/image/attr.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/class.o: $(srcdir)/cil/image/class.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/compress.o: $(srcdir)/cil/image/compress.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/context.o: $(srcdir)/cil/image/context.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/create.o: $(srcdir)/cil/image/create.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/errors.o: $(srcdir)/cil/image/errors.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/generic.o: $(srcdir)/cil/image/generic.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/image.o: $(srcdir)/cil/image/image.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/item.o: $(srcdir)/cil/image/item.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/link.o: $(srcdir)/cil/image/link.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/member.o: $(srcdir)/cil/image/member.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/meta_build.o: $(srcdir)/cil/image/meta_build.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/meta_header.o: $(srcdir)/cil/image/meta_header.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/meta_index.o: $(srcdir)/cil/image/meta_index.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/meta_types.o: $(srcdir)/cil/image/meta_types.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/misc_token.o: $(srcdir)/cil/image/misc_token.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/module.o: $(srcdir)/cil/image/module.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/opcodes.o: $(srcdir)/cil/image/opcodes.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/opdef.o: $(srcdir)/cil/image/opdef.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/pecoff_loader.o: $(srcdir)/cil/image/pecoff_loader.c
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/synthetic.o: $(srcdir)/cil/image/synthetic.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/sig_parse.o: $(srcdir)/cil/image/sig_parse.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/uncompress.o: $(srcdir)/cil/image/uncompress.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+# make object files of dotgnu(pnet/support)
+
+cil/allocate.o: $(srcdir)/cil/support/allocate.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/getcwd.o: $(srcdir)/cil/support/getcwd.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/guid.o: $(srcdir)/cil/support/guid.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/expand.o: $(srcdir)/cil/support/expand.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/file.o: $(srcdir)/cil/support/file.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/filemap.o: $(srcdir)/cil/support/filemap.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/hash.o: $(srcdir)/cil/support/hash.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/hashtab.o: $(srcdir)/cil/support/hashtab.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/memory.o: $(srcdir)/cil/support/memory.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/mempool.o: $(srcdir)/cil/support/mempool.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/memstack.o: $(srcdir)/cil/support/memstack.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/sha1.o: $(srcdir)/cil/support/sha1.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/strings.o: $(srcdir)/cil/support/strings.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/utf8.o: $(srcdir)/cil/support/utf8.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+cil/utf16.o: $(srcdir)/cil/support/utf16.c $(DOTGNU_HEADERS)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(INCLUDES) $(DOTGNU_INCLUDES) $<
+
+
+
+#
+# Build hooks:
+
+cil.all.build: cil
+cil.all.cross:
+
+cil.start.encap:
+cil.rest.encap:
+cil.man:
+cil.srcman:
+
+.phony:cil.info
+cil.info:
+cil.dvi:
+cil.generated-manpages:
+
+#
+# Install hooks:
+
+# Nothing to do here.
+cil.install-normal: cil.install.common
+
+# Install
+.phony:cil.install.common
+.phony:cil.install
+
+cil.install cil.install.common cil.install-common: cil.install.common.done
+
+cil.install.common.done:  installdirs cil.done
+	for name in $(CIL_EXES); \
+	do \
+	   if [ -f $$name ] ; then \
+	    name2="`echo \`basename $$name\` | sed -e '$(program_transform_name)' `"; \
+	    rm -f $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	    echo $(INSTALL_PROGRAM) $$name$(exeext) $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	    $(INSTALL_PROGRAM) $$name$(exeext) $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	    chmod a+x $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	  fi ; \
+	done
+	$(STAMP) cil.install.common.done
+
+cil.install-info:
+cil.install-man:
+
+cil.uninstall:
+	for name in $(CIL_EXES); \
+	do \
+	  echo $$name; \
+	  name2="`echo $$name | sed -e '$(program_transform_name)' `"; \
+	  echo becomes $$name2; \
+	  echo -rm -rf $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	  rm -rf $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	done
+	-rm cil.install.common.done
+
+#
+# Clean hooks:
+# A lot of the ancillary files are deleted by the main makefile.
+# We just have to delete files specific to us.
+
+cil.mostlyclean:
+	for name in $(CIL_EXES); \
+	do \
+	  echo deleting $$name; \
+	  if [ -f cil/$$name$(exeext) ] ; then \
+	    rm -f cil/$$name$(exeext); \
+	  fi ; \
+	done
+	-rm -f cil/*$(objext)
+	-rm -f cil/*$(coverageexts)
+	-rm cil.done
+
+
+cil.clean: cil.mostlyclean
+
+cil.distclean: cil.clean
+	-rm -f cil/config.status
+	-rm -f cil/*.output
+
+cil.extraclean: cil.distclean
+
+cil.maintainer-clean: cil.extraclean
+	for name in $(CIL_GENERATED); \
+	do \
+	  if [ -f $(srcdir)/cil/$$name ] ; then \
+             echo deleting $(srcdir)/cil/$$name; \
+	     rm -f $(srcdir)/cil/$$name; \
+	  fi ; \
+	done
+	-rm -R $(srcdir)/cil/*~
+
+
+#
+# Stage hooks:
+# The main makefile has already created stage?/cil.
+
+cil.stage1: stage1-start
+#	-mv cil/*$(objext) stage1/cil
+cil.stage2: stage2-start
+#	-mv cil/*$(objext) stage2/cil
+cil.stage3: stage3-start
+#	-mv cil/*$(objext) stage3/cil
+cil.stage4: stage4-start
+#	-mv cil/*$(objext) stage4/cil
+
+#
+# Maintenance hooks:
+
+# This target creates the files that can be rebuilt, but go in the
+# distribution anyway.  It then copies the files to the distdir directory.
+
+cil.distdir:
+
+#	not here yet sorry not sure if this is needed or not???

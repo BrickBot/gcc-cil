@@ -1,0 +1,230 @@
+2004-10-11  Martin v. Loewis <martin@v.loewis.de>
+
+	Change copyright holder to Jan Möller
+
+2004-10-11  Martin v. Loewis <martin@v.loewis.de>
+
+	Add README file.
+
+2004-10-07  Jan Moeller <Jan.Moeller@hpi.uni-potsdam.de>
+
+	added support for arrays, but there is a bug with array access
+
+2004-09-24  Martin v. Loewis <martin@v.loewis.de>
+
+	Add man and srcman targets.
+
+2004-09-22  Jan Moeller <Jan.Moeller@hpi.uni-potsdam.de>
+
+	changed implementation of issue 12 (check for null pointers)
+
+2004-09-22  Jan Moeller <Jan.Moeller@hpi.uni-potsdam.de>
+
+	fixed bugs: issue 12, issue 13
+
+2004-09-21  Jan Moeller <Jan.Moeller@hpi.uni-potsdam.de>
+
+	fixed bug: comparisons with null did not work
+
+2004-09-21  Jan Moeller <Jan.Moeller@hpi.uni-potsdam.de>
+
+	fixed bug: issue 9
+	removed support for parsing 'IL-files'
+
+2004-09-21  Martin v. Loewis <martin@v.loewis.de>
+
+	Only close yyin if we had opened it.
+
+2004-09-20  Jan Moeller <Jan.Moeller@hpi.uni-potsdam.de>
+
+	added support for instance methods and properties
+	fixed bug: it was necessary to declare a namespace
+	fixed bug: it was necessary to declare an entry point
+
+2004-09-16  Jan Moeller <Jan.Moeller@hpi.uni-potsdam.de>
+
+	binary parser now supports objects with attributes
+
+2004-09-14  Jan Moeller <Jan.Moeller@hpi.uni-potsdam.de>
+
+	added binary parser:
+	-support for: methods with parameters and local variables, arithmetic operations, control structures
+	-example 'linetracker' runs
+
+2004-08-20  Jan Moeller <Jan.Moeller@hpi.uni-potsdam.de>
+
+	added parts of dotgnu/pnet to parse assemblies
+
+2004-08-17  Jan Moeller
+
+	added support for classes, which can only have attributes
+
+2004-06-09  Jan Moeller
+
+	- added data type System.Int16 for array's
+
+2004-06-07  Martin v. Loewis <martin@v.loewis.de>
+
+	Port to gcc 3.4.
+
+2004-06-07  Martin v. Loewis <martin@v.loewis.de>
+
+	Add some support for Mono disassembler.
+
+2004-06-04  Jan Moeller
+
+	- added arrays of type:
+	  - int8 and uint8
+	  - int16 and uint16
+	  - int32 and uint32
+
+	-fixed bug: invalid class names, if assemblies contain
+	            more than one class or namesspace
+
+2004-05-07  Jan Moeller
+
+	- added data types:
+	  - int8 (sbyte)
+	  - uint8 (byte)
+
+	- added respective convert instructions (IL)
+
+2004-04-30  Jan Moeller
+
+	- added following convert instructions(IL):
+	  -conv.i4
+	  -conv.u2
+	  -conv.u4
+
+2004-04-30  Jan Moeller
+
+	- added following data types:
+	  -unsigned int16 (ushort)
+	  -unsigned int32 (uint)
+	  -int16(short)
+
+2004-04-08  Jan Moeller
+
+	-fixed bug: arguments were not passed in registers
+	            for H8300-Backend
+	-fixed bug: arguments were passed in reverse order
+	-added type uint16 (ushort)
+
+2004-04-07  Jan Moeller
+
+	-fixed bug: 'entrypoint'-function was not called "main"
+	-fixed bug: 'entrypoint'-function was not declared
+	            as .global (public)
+
+2004-04-01  Jan Moeller
+
+	-added support for int32 on 16-Bit target machines
+
+2004-04-01  Jan Moeller
+
+	-fixed Bug: operands of arithmetic expression
+	            were permuted
+	-fixed Bug: class and namespaces name were missing
+	            in the method name
+	-fixed Bug: typing error of opcode: 'ldlco\.3'
+	-changed implementation of branch constructs
+
+2004-03-29  Jan Moeller
+
+	- changed implementation of if/then/else construct
+	- added support for loops: do/while, for
+	- added support for '&&' and '||' within
+	  control structures
+
+2004-03-23  Jan Moeller
+
+	- added type boolean
+	- added support for if/then/else constructs
+	  with following operators: ==/!=/</<=/>/>=
+
+2004-02-20  Jan Moeller
+
+	added return values and function calls with return value
+
+2004-02-19  Jan Moeller
+
+	added add, sub, mult and div operation of type integer
+
+2004-02-19  Jan Moeller
+
+	fixed bug in cil-decl.c
+
+2004-02-19  Jan Moeller
+
+	added local variables and parameters of type integer
+
+2004-01-10  Martin von Loewis
+
+	Initialize more types, perform integer conversions,
+	to support -O2 on simple examples.
+
+2004-01-10  Martin von Loewis
+
+	Add builtin_function to support i386.
+
+2004-01-10  Martin von Loewis
+
+	Fix spelling of eol-style.
+
+2004-01-10  Martin von Loewis
+
+	Add missing semicolons.
+
+2004-01-10  Martin von Loewis
+
+	Set svn:eolstyle to native on all files. Convert parse.y to
+	not use CRLF on Unix. Build cil frontend by default.
+
+2004-01-09  Jan Moeller
+
+	added funtion call with parameters (only int's)
+
+2004-01-09  Jan Moeller
+
+	added stack really :-)
+
+2004-01-09  Jan Moeller
+
+	added stack of tree
+
+2003-12-05  Jan Moeller
+
+	added semantic processing
+	(this time for real :-)
+
+2003-12-05  Jan Moeller
+
+	- fixed memory-management-bug
+
+2003-12-05  Jan Moeller
+
+	added semantic actions to compile "Beep() - Example"
+
+2003-11-21  Jan Moeller
+
+	added complete il-grammar
+
+2003-10-17  Jan Moeller
+
+	added minimal lexer and parser
+
+2003-10-17  Jan Moeller
+
+	added function call
+
+2003-10-02  Jan Moeller
+
+	added function cil_parse_file()
+	implemented function cil_parse_file to compile an empy function
+
+2003-09-29  Jan Moeller
+
+2003-09-23  Jan Moeller
+
+	added minimal cil-frontend
+

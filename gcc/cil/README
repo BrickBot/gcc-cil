@@ -1,0 +1,12 @@
+ECMA Intermediate Language Front-End for GCC (cil1)
+===================================================
+
+This directory contains the IL front-end developed by
+Jan Möller and Martin v. Löwis at the Hasso Plattner
+Institute in Potsdam (Germany). It is based on GCC 3.4.1
+and incorporates code from the DotGNU project (cf.
+image, include and support sub-directories).
+
+As the rest of GCC, this code is made available under
+the terms of the GPL.
+

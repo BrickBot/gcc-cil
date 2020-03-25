@@ -1,0 +1,1229 @@
+# Top level makefile fragment for SCIL frontend for the GCC. -*- makefile -*-
+
+# This file provides the language dependent support in the main Makefile.
+# Each language makefile fragment must provide the following targets:
+#
+# foo.all.build, foo.all.cross, foo.start.encap, foo.rest.encap,
+# foo.info, foo.dvi,
+# foo.install-normal, foo.install-common, foo.install-info, foo.install-man,
+# foo.uninstall, foo.distdir,
+# foo.mostlyclean, foo.clean, foo.distclean, foo.extraclean,
+# foo.maintainer-clean, foo.stage1, foo.stage2, foo.stage3, foo.stage4
+#
+# where `foo' is the name of the language.
+#
+# It should also provide rules for:
+#
+# - making any compiler driver (eg: GCC)
+# - the compiler proper (eg: treelang)
+# - define the names for selecting the language in LANGUAGES.
+#
+## Note: program-prefix and program-suffix options are not supported
+## just program_transform_name which is a sed script to transform the
+## names
+
+# back end compiler libraries etc as defined by the GCC
+SCIL_BE_LIBS_DEP = $(BACKEND) $(LIBIBERTY) $(INTLLIBS) $(LIBDEPS)
+SCIL_BE_LIBS_NODEP = $(INTLLIBS) $(LIBS)
+
+SCIL_EXES = scil$(exeext)
+
+SCIL-warn = $(STRICT_WARN)
+
+# Don't remove these lines, they are needed to set SCIL_OBJECTS and SCIL_DIRS.
+SCIL_OBJECTS = scil/scil-builtins.o scil/scil-class.o scil/scil-evalstack.o scil/scil-hooks.o scil/scil-instructions.o scil/scil-main.o scil/scil-mangle.o scil/scil-method.o scil/scil-mono.o scil/scil-pnet.o scil/scil-trees.o scil/pnet/image/assembly.o scil/pnet/image/attr.o scil/pnet/image/class.o scil/pnet/image/compact.o scil/pnet/image/compress.o scil/pnet/image/context.o scil/pnet/image/create.o scil/pnet/image/debug_reader.o scil/pnet/image/debug_writer.o scil/pnet/image/errors.o scil/pnet/image/generic.o scil/pnet/image/image.o scil/pnet/image/item.o scil/pnet/image/java_loader.o scil/pnet/image/java_writer.o scil/pnet/image/jopcodes.o scil/pnet/image/lib_attrs.o scil/pnet/image/link.o scil/pnet/image/marshal.o scil/pnet/image/member.o scil/pnet/image/meta_build.o scil/pnet/image/meta_header.o scil/pnet/image/meta_index.o scil/pnet/image/meta_types.o scil/pnet/image/meta_writer.o scil/pnet/image/misc_token.o scil/pnet/image/module.o scil/pnet/image/opcodes.o scil/pnet/image/opcodes_small.o scil/pnet/image/opdef.o scil/pnet/image/pecoff_loader.o scil/pnet/image/pecoff_writer.o scil/pnet/image/ser_parse.o scil/pnet/image/ser_writer.o scil/pnet/image/sig_parse.o scil/pnet/image/sig_writer.o scil/pnet/image/synthetic.o scil/pnet/image/test_macros.o scil/pnet/image/uncompress.o scil/pnet/image/winres_reader.o scil/pnet/image/winres_writer.o scil/pnet/image/writer.o scil/pnet/support/allocate.o scil/pnet/support/cmdline.o scil/pnet/support/dir.o scil/pnet/support/expand.o scil/pnet/support/file.o scil/pnet/support/filemap.o scil/pnet/support/getcwd.o scil/pnet/support/guid.o scil/pnet/support/hash.o scil/pnet/support/hashtab.o scil/pnet/support/memory.o scil/pnet/support/mempool.o scil/pnet/support/memstack.o scil/pnet/support/no_defs.o scil/pnet/support/path.o scil/pnet/support/read_float.o scil/pnet/support/sha1.o scil/pnet/support/strings.o scil/pnet/support/time.o scil/pnet/support/utf16.o scil/pnet/support/utf8.o scil/pnet/support/write_float.o 
+SCIL_INCLUDES = -I$(srcdir)/scil -I$(srcdir)/scil/pnet/image -I$(srcdir)/scil/pnet/include -I$(srcdir)/scil/pnet/support
+
+# Define the names for selecting SCIL in LANGUAGES.
+
+.phony: SCIL
+
+SCIL: SCIL.done
+
+SCIL.done: $(SCIL_EXES)
+	$(STAMP) cil.done	
+
+# no preprocessor
+
+# core compiler
+$(SCIL_EXES): $(SCIL_OBJECTS) attribs.o scil-pnet-errno_map.o $(SCIL_BE_LIBS_DEP)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $^ $(SCIL_BE_LIBS_NODEP)
+
+$(SCIL_GTY_GENERATED): s-gtype; @true
+
+$(SCIL_OBJECTS) : %.o : $(srcdir)/%.c
+	@mkdir -p $(*D)
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(SCIL_INCLUDES) $(INCLUDES) $<
+
+scil-pnet-errno_map.o : scil-pnet-errno_map.c
+	$(CC) -o $@ -c $(ALL_CFLAGS) $(SCIL_INCLUDES) $(INCLUDES) $<
+
+scil-pnet-errno_map.c : $(srcdir)/scil/pnet/support/gen_errno.sh $(srcdir)/scil/pnet/include/il_errno.h
+	$^ $(CC) -c $(ALL_CFLAGS) $(SCIL_INCLUDES) $(INCLUDES) >$@
+
+# Build hooks:
+
+SCIL.all.build: SCIL
+SCIL.all.cross:
+
+SCIL.start.encap:
+SCIL.rest.encap:
+SCIL.man:
+SCIL.srcman:
+
+.phony:SCIL.info
+SCIL.info:
+SCIL.dvi:
+SCIL.generated-manpages:
+
+# Install hooks:
+
+SCIL.install-normal: SCIL.install.common
+
+.phony:SCIL.install.common
+.phony:SCIL.install
+
+SCIL.install SCIL.install.common SCIL.install-common: SCIL.install.common.done
+
+SCIL.install.common.done:  installdirs SCIL.done
+	for name in $(SCIL_EXES); \
+	do \
+	   if [ -f $$name ] ; then \
+	    name2="`echo \`basename $$name\` | sed -e '$(program_transform_name)' `"; \
+	    rm -f $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	    echo $(INSTALL_PROGRAM) $$name$(exeext) $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	    $(INSTALL_PROGRAM) $$name$(exeext) $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	    chmod a+x $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	  fi ; \
+	done
+	$(STAMP) SCIL.install.common.done
+
+SCIL.install-info:
+SCIL.install-man:
+
+SCIL.uninstall:
+	for name in $(SCIL_EXES); \
+	do \
+	  echo $$name; \
+	  name2="`echo $$name | sed -e '$(program_transform_name)' `"; \
+	  echo becomes $$name2; \
+	  echo -rm -rf $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	  rm -rf $(DESTDIR)$(bindir)/$$name2$(exeext); \
+	done
+	-rm SCIL.install.common.done
+
+#
+# Clean hooks:
+# A lot of the ancillary files are deleted by the main makefile.
+# We just have to delete files specific to us.
+
+SCIL.mostlyclean:
+	for name in $(SCIL_EXES); \
+	do \
+          rm -f scil/$$name$(exeext); \
+	done
+	-rm -f scil/*$(objext)
+	-rm -f scil/*$(coverageexts)
+	-rm SCIL.done
+
+
+SCIL.clean: SCIL.mostlyclean
+
+SCIL.distclean: SCIL.clean
+	-rm -f scil/config.status
+	-rm -f scil/*.output
+
+SCIL.extraclean: SCIL.distclean
+
+SCIL.maintainer-clean: SCIL.extraclean
+	for name in $(SCIL_GTY_GENERATED); \
+	do \
+          rm -f $(srcdir)/scil/$$name; \
+	done
+	-rm -R $(srcdir)/scil/*~
+
+
+# Stage hooks:
+# The main makefile has already created stage%/scil.
+
+SCIL.stage%: stage%-start
+
+# Maintenance hooks:
+
+# This target creates the files that can be rebuilt, but go in the
+# distribution anyway.  It then copies the files to the distdir directory.
+
+SCIL.distdir:
+
+SCIL_GTY_GENERATED = gtype-scil.h gt-scil-scil-evalstack.h
+
+scil/scil-builtins.o $(srcdir)/scil/scil-builtins.d : $(srcdir)/scil/scil-builtins.c ./config.h \
+  ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/function.h \
+  $(srcdir)/tree-gimple.h $(srcdir)/tree-iterator.h \
+  $(srcdir)/ggc.h ./gtype-desc.h \
+  $(srcdir)/scil/scil-builtins.h $(srcdir)/scil/scil-hooks.h \
+  $(srcdir)/scil/scil-trees.h $(srcdir)/scil/scil-rt.h \
+  $(srcdir)/scil/scil-callbacks.h
+
+scil/scil-class.o $(srcdir)/scil/scil-class.d : $(srcdir)/scil/scil-class.c ./config.h \
+  ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/toplev.h \
+  $(srcdir)/cgraph.h $(srcdir)/tree.h \
+  $(srcdir)/basic-block.h $(srcdir)/bitmap.h \
+  $(srcdir)/sbitmap.h $(srcdir)/varray.h \
+  $(srcdir)/../include/partition.h $(srcdir)/hard-reg-set.h \
+  $(srcdir)/predict.h $(srcdir)/predict.def \
+  $(srcdir)/function.h $(srcdir)/cfghooks.h \
+  $(srcdir)/scil/scil-config.h $(srcdir)/scil/scil-hooks.h \
+  $(srcdir)/scil/scil-callbacks.h $(srcdir)/scil/scil-rt.h \
+  $(srcdir)/scil/scil-trees.h $(srcdir)/scil/scil-builtins.h \
+  $(srcdir)/scil/scil-mangle.h
+
+scil/scil-evalstack.o $(srcdir)/scil/scil-evalstack.d : $(srcdir)/scil/scil-evalstack.c ./config.h \
+  ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/ggc.h \
+  ./gtype-desc.h $(srcdir)/toplev.h \
+  $(srcdir)/scil/scil-config.h \
+  $(srcdir)/scil/scil-callbacks.h \
+  $(srcdir)/scil/scil-builtins.h \
+  $(srcdir)/scil/scil-evalstack.h ./gt-scil-scil-evalstack.h
+
+scil/scil-hooks.o $(srcdir)/scil/scil-hooks.d : $(srcdir)/scil/scil-hooks.c ./config.h \
+  ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/ggc.h \
+  ./gtype-desc.h $(srcdir)/toplev.h $(srcdir)/convert.h \
+  $(srcdir)/langhooks.h $(srcdir)/langhooks-def.h \
+  $(srcdir)/hooks.h $(srcdir)/scil/scil-hooks.h \
+  $(srcdir)/scil/scil-builtins.h $(srcdir)/tree.def \
+  $(srcdir)/debug.h ./gtype-scil.h
+
+scil/scil-instructions.o $(srcdir)/scil/scil-instructions.d : $(srcdir)/scil/scil-instructions.c \
+  ./config.h ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/toplev.h \
+  $(srcdir)/tree-gimple.h $(srcdir)/tree-iterator.h \
+  $(srcdir)/scil/scil-config.h $(srcdir)/scil/scil-hooks.h \
+  $(srcdir)/scil/scil-callbacks.h $(srcdir)/scil/scil-rt.h \
+  $(srcdir)/scil/scil-trees.h $(srcdir)/scil/scil-builtins.h \
+  $(srcdir)/scil/scil-mangle.h \
+  $(srcdir)/scil/scil-instructions.h \
+  $(srcdir)/scil/scil-evalstack.h
+
+scil/scil-main.o $(srcdir)/scil/scil-main.d : $(srcdir)/scil/scil-main.c ./config.h \
+  ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h ./options.h \
+  $(srcdir)/toplev.h $(srcdir)/cgraph.h \
+  $(srcdir)/tree.h $(srcdir)/basic-block.h \
+  $(srcdir)/bitmap.h $(srcdir)/sbitmap.h \
+  $(srcdir)/varray.h $(srcdir)/../include/partition.h \
+  $(srcdir)/hard-reg-set.h $(srcdir)/predict.h \
+  $(srcdir)/predict.def $(srcdir)/function.h \
+  $(srcdir)/cfghooks.h $(srcdir)/ggc.h ./gtype-desc.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/scil/scil-hooks.h \
+  $(srcdir)/scil/scil-cral.h $(srcdir)/scil/scil-builtins.h \
+  $(srcdir)/scil/scil-mangle.h
+
+scil/scil-mangle.o $(srcdir)/scil/scil-mangle.d : $(srcdir)/scil/scil-mangle.c ./config.h \
+  ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/toplev.h \
+  $(srcdir)/scil/scil-hooks.h $(srcdir)/scil/scil-callbacks.h \
+  $(srcdir)/scil/scil-rt.h $(srcdir)/scil/scil-trees.h \
+  $(srcdir)/scil/scil-mangle.h
+
+scil/scil-method.o $(srcdir)/scil/scil-method.d : $(srcdir)/scil/scil-method.c ./config.h \
+  ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/tree-iterator.h \
+  $(srcdir)/tree-gimple.h $(srcdir)/tree-iterator.h \
+  $(srcdir)/tree-dump.h $(srcdir)/../include/splay-tree.h \
+  $(srcdir)/tree-pass.h $(srcdir)/cgraph.h \
+  $(srcdir)/tree.h $(srcdir)/basic-block.h \
+  $(srcdir)/bitmap.h $(srcdir)/sbitmap.h \
+  $(srcdir)/varray.h $(srcdir)/../include/partition.h \
+  $(srcdir)/hard-reg-set.h $(srcdir)/predict.h \
+  $(srcdir)/predict.def $(srcdir)/function.h \
+  $(srcdir)/cfghooks.h $(srcdir)/ggc.h ./gtype-desc.h \
+  $(srcdir)/toplev.h $(srcdir)/scil/scil-config.h \
+  $(srcdir)/scil/scil-hooks.h $(srcdir)/scil/scil-callbacks.h \
+  $(srcdir)/scil/scil-rt.h $(srcdir)/scil/scil-trees.h \
+  $(srcdir)/scil/scil-builtins.h $(srcdir)/scil/scil-mangle.h \
+  $(srcdir)/scil/scil-evalstack.h
+
+scil/scil-mono.o $(srcdir)/scil/scil-mono.d : $(srcdir)/scil/scil-mono.c ./config.h \
+  ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/toplev.h \
+  $(srcdir)/scil/scil-config.h $(srcdir)/scil/scil-hooks.h \
+  $(srcdir)/scil/scil-rt.h $(srcdir)/scil/scil-callbacks.h \
+  $(srcdir)/scil/scil-builtins.h $(srcdir)/scil/scil-trees.h \
+  $(srcdir)/scil/scil-instructions.h
+
+scil/scil-pnet.o $(srcdir)/scil/scil-pnet.d : $(srcdir)/scil/scil-pnet.c ./config.h \
+  ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/toplev.h \
+  $(srcdir)/scil/scil-config.h $(srcdir)/scil/scil-cral.h \
+  $(srcdir)/scil/scil-callbacks.h \
+  $(srcdir)/scil/scil-instructions.h \
+  $(srcdir)/scil/scil-builtins.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/scil-instructions.def \
+  $(srcdir)/scil/scil-extended-instructions.def
+
+scil/scil-trees.o $(srcdir)/scil/scil-trees.d : $(srcdir)/scil/scil-trees.c ./config.h \
+  ./auto-host.h $(srcdir)/system.h \
+  $(srcdir)/../include/safe-ctype.h $(srcdir)/hwint.h \
+  $(srcdir)/../include/filenames.h \
+  $(srcdir)/../include/libiberty.h \
+  $(srcdir)/../include/ansidecl.h $(srcdir)/coretypes.h \
+  ./tm.h $(srcdir)/tree.h $(srcdir)/machmode.h ./insn-modes.h \
+  $(srcdir)/mode-classes.def $(srcdir)/input.h \
+  $(srcdir)/../libcpp/include/line-map.h \
+  $(srcdir)/statistics.h $(srcdir)/vec.h \
+  $(srcdir)/tree.def $(srcdir)/builtins.def \
+  $(srcdir)/treestruct.def ./tree-check.h \
+  $(srcdir)/../libcpp/include/symtab.h \
+  $(srcdir)/../include/obstack.h $(srcdir)/ggc.h \
+  ./gtype-desc.h $(srcdir)/vec.h $(srcdir)/toplev.h \
+  $(srcdir)/scil/scil-config.h $(srcdir)/scil/scil-hooks.h \
+  $(srcdir)/scil/scil-builtins.h $(srcdir)/scil/scil-rt.h \
+  $(srcdir)/scil/scil-trees.h
+
+scil/pnet/image/assembly.o: $(srcdir)/scil/pnet/image/assembly.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/attr.o: $(srcdir)/scil/pnet/image/attr.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/class.o: $(srcdir)/scil/pnet/image/class.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/compact.o: $(srcdir)/scil/pnet/image/compact.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/compress.o: $(srcdir)/scil/pnet/image/compress.c \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h
+
+scil/pnet/image/context.o: $(srcdir)/scil/pnet/image/context.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/create.o: $(srcdir)/scil/pnet/image/create.c \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/debug_reader.o:  \
+ $(srcdir)/scil/pnet/image/debug_reader.c \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_debug.h
+
+scil/pnet/image/debug_writer.o:  \
+ $(srcdir)/scil/pnet/image/debug_writer.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/errors.o: $(srcdir)/scil/pnet/image/errors.c \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h
+
+scil/pnet/image/generic.o: $(srcdir)/scil/pnet/image/generic.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/image.o: $(srcdir)/scil/pnet/image/image.c \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/item.o: $(srcdir)/scil/pnet/image/item.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/java_loader.o:  \
+ $(srcdir)/scil/pnet/image/java_loader.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_jopcodes.h
+
+scil/pnet/image/java_writer.o:  \
+ $(srcdir)/scil/pnet/image/java_writer.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_jopcodes.h
+
+scil/pnet/image/jopcodes.o: $(srcdir)/scil/pnet/image/jopcodes.c \
+  $(srcdir)/scil/pnet/include/il_jopcodes.h \
+  $(srcdir)/scil/pnet/include/il_opcodes.h
+
+scil/pnet/image/lib_attrs.o: $(srcdir)/scil/pnet/image/lib_attrs.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_serialize.h
+
+scil/pnet/image/link.o: $(srcdir)/scil/pnet/image/link.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_serialize.h
+
+scil/pnet/image/marshal.o: $(srcdir)/scil/pnet/image/marshal.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/member.o: $(srcdir)/scil/pnet/image/member.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/meta_build.o:  \
+ $(srcdir)/scil/pnet/image/meta_build.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/meta_header.o:  \
+ $(srcdir)/scil/pnet/image/meta_header.c \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/meta_index.o:  \
+ $(srcdir)/scil/pnet/image/meta_index.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/meta_types.o:  \
+ $(srcdir)/scil/pnet/image/meta_types.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/meta_writer.o:  \
+ $(srcdir)/scil/pnet/image/meta_writer.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/misc_token.o:  \
+ $(srcdir)/scil/pnet/image/misc_token.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/module.o: $(srcdir)/scil/pnet/image/module.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/opcodes.o: $(srcdir)/scil/pnet/image/opcodes.c \
+  $(srcdir)/scil/pnet/include/il_opcodes.h \
+  $(srcdir)/scil/pnet/image/opdef.c
+
+scil/pnet/image/opcodes_small.o:  \
+ $(srcdir)/scil/pnet/image/opcodes_small.c \
+  $(srcdir)/scil/pnet/include/il_opcodes.h \
+  $(srcdir)/scil/pnet/image/opdef.c
+
+scil/pnet/image/opdef.o: $(srcdir)/scil/pnet/image/opdef.c
+
+scil/pnet/image/pecoff_loader.o:  \
+ $(srcdir)/scil/pnet/image/pecoff_loader.c \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/pecoff_writer.o:  \
+ $(srcdir)/scil/pnet/image/pecoff_writer.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/ser_parse.o: $(srcdir)/scil/pnet/image/ser_parse.c \
+  $(srcdir)/scil/pnet/include/il_serialize.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/ser_writer.o:  \
+ $(srcdir)/scil/pnet/image/ser_writer.c \
+  $(srcdir)/scil/pnet/include/il_serialize.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/sig_parse.o: $(srcdir)/scil/pnet/image/sig_parse.c \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/sig_writer.o:  \
+ $(srcdir)/scil/pnet/image/sig_writer.c \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/synthetic.o: $(srcdir)/scil/pnet/image/synthetic.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/test_macros.o:  \
+ $(srcdir)/scil/pnet/image/test_macros.c \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_types.h
+
+scil/pnet/image/uncompress.o:  \
+ $(srcdir)/scil/pnet/image/uncompress.c \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_meta.h
+
+scil/pnet/image/winres_reader.o:  \
+ $(srcdir)/scil/pnet/image/winres_reader.c \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/winres_writer.o:  \
+ $(srcdir)/scil/pnet/image/winres_writer.c \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/image/writer.o: $(srcdir)/scil/pnet/image/writer.c \
+  $(srcdir)/scil/pnet/image/program.h \
+  $(srcdir)/scil/pnet/image/image.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_image.h \
+  $(srcdir)/scil/pnet/include/il_meta.h \
+  $(srcdir)/scil/pnet/include/il_types.h \
+  $(srcdir)/scil/pnet/include/il_writer.h \
+  $(srcdir)/scil/pnet/include/il_program.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/support/allocate.o:  \
+ $(srcdir)/scil/pnet/support/allocate.c \
+  $(srcdir)/scil/pnet/support/thr_defs.h \
+  $(srcdir)/scil/pnet/support/thr_choose.h \
+  $(srcdir)/scil/pnet/include/il_gc.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_config.h \
+  $(srcdir)/scil/pnet/include/il_thread.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/support/interrupt.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/support/no_defs.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_align.h \
+  $(srcdir)/scil/pnet/support/mem_debug.h
+
+scil/pnet/support/cmdline.o: $(srcdir)/scil/pnet/support/cmdline.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_regex.h \
+  $(srcdir)/scil/pnet/include/il_sysio.h \
+  $(srcdir)/scil/pnet/include/il_system.h
+
+scil/pnet/support/dir.o: $(srcdir)/scil/pnet/support/dir.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_sysio.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_errno.h
+
+scil/pnet/support/expand.o: $(srcdir)/scil/pnet/support/expand.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h
+
+scil/pnet/support/file.o: $(srcdir)/scil/pnet/support/file.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_sysio.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_errno.h
+
+scil/pnet/support/filemap.o: $(srcdir)/scil/pnet/support/filemap.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/support/mem_debug.h
+
+scil/pnet/support/getcwd.o: $(srcdir)/scil/pnet/support/getcwd.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h
+
+scil/pnet/support/guid.o: $(srcdir)/scil/pnet/support/guid.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_crypt.h
+
+scil/pnet/support/hash.o: $(srcdir)/scil/pnet/support/hash.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/support/hashtab.o: $(srcdir)/scil/pnet/support/hashtab.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/support/memory.o: $(srcdir)/scil/pnet/support/memory.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h
+
+scil/pnet/support/mempool.o: $(srcdir)/scil/pnet/support/mempool.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_align.h
+
+scil/pnet/support/memstack.o:  \
+ $(srcdir)/scil/pnet/support/memstack.c \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_align.h
+
+scil/pnet/support/no_defs.o: $(srcdir)/scil/pnet/support/no_defs.c \
+  $(srcdir)/scil/pnet/support/thr_defs.h \
+  $(srcdir)/scil/pnet/support/thr_choose.h \
+  $(srcdir)/scil/pnet/include/il_gc.h \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_config.h \
+  $(srcdir)/scil/pnet/include/il_thread.h \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/support/interrupt.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/support/no_defs.h
+
+scil/pnet/support/path.o: $(srcdir)/scil/pnet/support/path.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h
+
+scil/pnet/support/read_float.o:  \
+ $(srcdir)/scil/pnet/support/read_float.c \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h
+
+scil/pnet/support/sha1.o: $(srcdir)/scil/pnet/support/sha1.c \
+  $(srcdir)/scil/pnet/include/il_crypt.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_system.h
+
+scil/pnet/support/strings.o: $(srcdir)/scil/pnet/support/strings.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h
+
+scil/pnet/support/time.o: $(srcdir)/scil/pnet/support/time.c \
+  $(srcdir)/scil/pnet/include/il_system.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h \
+  $(srcdir)/scil/pnet/include/il_thread.h \
+  $(srcdir)/scil/pnet/include/il_system.h
+
+scil/pnet/support/utf16.o: $(srcdir)/scil/pnet/support/utf16.c \
+  $(srcdir)/scil/pnet/include/il_utils.h \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h
+
+scil/pnet/support/utf8.o: $(srcdir)/scil/pnet/support/utf8.c \
+  $(srcdir)/scil/pnet/include/il_utils.h
+
+scil/pnet/support/write_float.o:  \
+ $(srcdir)/scil/pnet/support/write_float.c \
+  $(srcdir)/scil/pnet/include/il_values.h \
+  $(srcdir)/scil/pnet/include/il_config.h ./config.h ./auto-host.h \
+  $(srcdir)/scil/pnet/include/il_profile.h
+

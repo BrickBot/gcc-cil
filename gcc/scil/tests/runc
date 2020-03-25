@@ -1,0 +1,10 @@
+gcc/cc1 -Wall -o sound.s ../trunk/gcc/scil/tests/c/sound.c
+gcc/cc1 -Wall -o timer.s ../trunk/gcc/scil/tests/c/timer.c
+gcc/cc1 -Wall -o test_rcx-2733.s ../trunk/gcc/scil/tests/c/test_rcx-2733.c
+/usr/local/bin/h8300-hms-as test_rcx-2733.s -o test_rcx-2733.o
+/usr/local/bin/h8300-hms-as timer.s -o timer.o
+/usr/local/bin/h8300-hms-as sound.s -o sound.o
+/usr/local/bin/h8300-hms-as rt.s -o rt.o
+/usr/local/bin/h8300-hms-as ../trunk/gcc/scil/tests/rcx/runtime.s -o runtime.o
+/usr/local/bin/h8300-hms-ld --script cmain.lds --relax --strip-all -nostdlib -o test_rcx.bin runtime.o test_rcx-2733.o rt.o sound.o timer.o
+/usr/local/bin/h8300-hms-objcopy -O srec test_rcx.bin test_rcx.srec

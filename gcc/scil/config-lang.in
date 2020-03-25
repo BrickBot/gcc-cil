@@ -1,0 +1,18 @@
+# configure fragment for the SCIL frontend for the GCC.
+
+# Configure looks for the existence of this file to auto-config each language.
+# We define several parameters used by configure:
+#
+# language	- name of language as it would appear in $(LANGUAGES)
+# compilers	- value to add to $(COMPILERS)
+# stagestuff	- files to add to $(STAGESTUFF)
+# diff_excludes	- files to ignore when building diffs between two versions.
+
+language="SCIL"
+
+compilers="scil\$(exeext)"
+
+build_by_default="yes"
+
+gtfiles="\$(srcdir)/scil/scil-evalstack.c \$(srcdir)/scil/scil-hooks.h"
+

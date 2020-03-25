@@ -1,0 +1,24 @@
+extern char Renesas_H8_3297_Board_Timer16Bit_InterruptEnableRegister;
+extern char Renesas_H8_3297_Board_Timer16Bit_ControlStatusRegister;
+extern unsigned int Renesas_H8_3297_Board_Timer16Bit_FreeRunningCounter;
+extern unsigned int Renesas_H8_3297_Board_Timer16Bit_OutputCompareRegister;
+extern char Renesas_H8_3297_Board_Timer16Bit_ControlRegister;
+extern char Renesas_H8_3297_Board_Timer16Bit_OutputCompareControlRegister;
+extern unsigned int Renesas_H8_3297_Board_Timer16Bit_InputCaptureRegisterA;
+extern unsigned int Renesas_H8_3297_Board_Timer16Bit_InputCaptureRegisterB;
+extern unsigned int Renesas_H8_3297_Board_Timer16Bit_InputCaptureRegisterC;
+extern unsigned int Renesas_H8_3297_Board_Timer16Bit_InputCaptureRegisterD;
+
+static inline void
+Renesas_H8_3297_Board_Timer16Bit_set_CompareMatchA (unsigned int value)
+{ 
+  Renesas_H8_3297_Board_Timer16Bit_OutputCompareControlRegister &= 0xEF;
+  Renesas_H8_3297_Board_Timer16Bit_OutputCompareRegister = value;
+}
+
+static inline void
+Renesas_H8_3297_Board_Timer16Bit_set_CompareMatchB (unsigned int value)
+{ 
+  Renesas_H8_3297_Board_Timer16Bit_OutputCompareControlRegister |= 0x10;
+  Renesas_H8_3297_Board_Timer16Bit_OutputCompareRegister = value;
+}

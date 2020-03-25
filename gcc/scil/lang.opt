@@ -1,0 +1,18 @@
+; language options definition file for SCIL
+
+Language
+SCIL
+
+v
+SCIL
+Displays the version of the SCIL frontend.
+
+I
+SCIL Joined Separate
+Adds the argument to the list of directories that are searched for assemblies.
+
+syslib
+SCIL Joined Separate Var(scil_system_library) Init("mscorlib.dll")
+The system library (e.g. mscorlib.dll).
+
+;
