@@ -1,5 +1,5 @@
 # gcc-cil
-An "official" gcc branch that adds CIL capabilities to gcc
+An "official" gcc branch that adds CIL capabilities to gcc, for use with brickOS-bibo and Lego.NET
 
 ## Usage
 Used to build projects such as [brickOS-bibo](https://github.com/BrickBot/brickOS-bibo),
@@ -14,7 +14,7 @@ into native machine code of the target processor.
 ## Background
 Based on a review of the [GCC SVN repository archive](https://gcc.gnu.org/git/?p=gcc-old.git;a=heads),
 the "st" branch no longer appears to exist.  The starting point for the code in this
-repository is the version of GCC 1.4 that was used in the creation of the Lego.NET v1.4 release.
+repository is the version of GCC 4.1 that was used in the creation of the Lego.NET v1.4 release.
 
 
 ## Additional Information
