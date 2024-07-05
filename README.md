@@ -1,6 +1,6 @@
 # gcc-cil
 An "official" gcc branch that adds CIL capabilities to gcc, for use with
-[brickOS-bibo](https://github.com/BrickBot/brickOS-bibo) and [Lego.NET](https://github.com/BrickBot/gcc-cil)
+[brickOS-bibo](https://github.com/BrickBot/brickOS-bibo) and [Lego.NET](https://github.com/BrickBot/Lego.NET)
 
 ## Usage
 Used to build projects such as [brickOS-bibo](https://github.com/BrickBot/brickOS-bibo),
